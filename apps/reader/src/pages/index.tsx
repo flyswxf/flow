@@ -12,7 +12,6 @@ import {
   MdOutlineShare,
 } from 'react-icons/md'
 import { useSet } from 'react-use'
-import { usePrevious } from 'react-use'
 
 import { ReaderGridView, Button, TextField, DropZone } from '../components'
 import { BookRecord, CoverRecord, db } from '../db'
@@ -102,43 +101,24 @@ const Library: React.FC = () => {
 
   const { data: remoteBooks, mutate: mutateRemoteBooks } = useRemoteBooks()
   const { data: remoteFiles, mutate: mutateRemoteFiles } = useRemoteFiles()
-  const previousRemoteBooks = usePrevious(remoteBooks)
-  const previousRemoteFiles = usePrevious(remoteFiles)
 
   const [select, toggleSelect] = useBoolean(false)
   const [selectedBookIds, { add, has, toggle, reset }] = useSet<string>()
 
   const [loading, setLoading] = useState<string | undefined>()
-  const [readyToSync, setReadyToSync] = useState(false)
+  const [syncVersion, setSyncVersion] = useState(0)
 
   const { groups } = useReaderSnapshot()
 
   useEffect(() => {
-    if (previousRemoteFiles && remoteFiles) {
-      // to remove effect dependency `books`
-      db?.books.toArray().then((books) => {
-        if (books.length === 0) return
-
-        const newRemoteBooks = remoteFiles.map((f) =>
-          books.find((b) => b.name === f.name),
-        ) as BookRecord[]
-
-        uploadData(newRemoteBooks)
-        mutateRemoteBooks(newRemoteBooks, { revalidate: false })
-      })
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mutateRemoteBooks, remoteFiles])
-
-  useEffect(() => {
-    if (!previousRemoteBooks && remoteBooks) {
-      db?.books.bulkPut(remoteBooks).then(() => setReadyToSync(true))
+    if (remoteBooks) {
+      db?.books.bulkPut(remoteBooks).then(() => setSyncVersion((v) => v + 1))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remoteBooks])
 
   useEffect(() => {
-    if (!remoteFiles || !readyToSync) return
+    if (!remoteFiles || !syncVersion) return
 
     db?.books.toArray().then(async (books) => {
       for (const remoteFile of remoteFiles) {
@@ -158,7 +138,7 @@ const Library: React.FC = () => {
         setLoading(undefined)
       }
     })
-  }, [readyToSync, remoteFiles])
+  }, [syncVersion, remoteFiles])
 
   useEffect(() => {
     if (!select) reset()
@@ -268,6 +248,16 @@ const Library: React.FC = () => {
                       setLoading(undefined)
 
                       mutateRemoteFiles()
+                      mutateRemoteBooks((remoteBooks) => {
+                        const newRemoteBooks = [
+                          ...(remoteBooks || []),
+                          ...selectedBooks.filter(
+                            (b) => !remoteBooks?.find((r) => r.id === b.id),
+                          ),
+                        ]
+                        uploadData(newRemoteBooks)
+                        return newRemoteBooks
+                      })
                     }
                   }}
                 >
@@ -296,6 +286,15 @@ const Library: React.FC = () => {
                       },
                       { revalidate: false },
                     )
+
+                    mutateRemoteBooks((remoteBooks) => {
+                      const newRemoteBooks =
+                        remoteBooks?.filter(
+                          (b) => !selectedBooks.find((s) => s.id === b.id),
+                        ) || []
+                      uploadData(newRemoteBooks)
+                      return newRemoteBooks
+                    })
                   }}
                 >
                   {t('delete')}
