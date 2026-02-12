@@ -17,7 +17,6 @@ import { ReaderGridView, Button, TextField, DropZone } from '../components'
 import { BookRecord, CoverRecord, db } from '../db'
 import { addFile, fetchBook, handleFiles } from '../file'
 import {
-  useDisablePinchZooming,
   useLibrary,
   useMobile,
   useRemoteBooks,
@@ -38,8 +37,6 @@ export default function Index() {
   const router = useRouter()
   const src = new URL(window.location.href).searchParams.get(SOURCE)
   const [loading, setLoading] = useState(!!src)
-
-  useDisablePinchZooming()
 
   useEffect(() => {
     let src = router.query[SOURCE]
