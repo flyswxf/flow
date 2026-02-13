@@ -188,6 +188,9 @@ const TextSelectionMenuRenderer: React.FC<TextSelectionMenuRendererProps> = ({
             copy(text)
           }
         }}
+        onMouseDown={(e) => {
+          e.stopPropagation()
+        }}
       >
         {annotate ? (
           <div className="mb-3">
