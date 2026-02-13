@@ -286,22 +286,6 @@ function BookPane({ tab, onMouseDown }: BookPaneProps) {
     setDragEvent(e)
   })
 
-  const handleScroll = () => {
-    if (!iframe || !mobile) return
-    const el = iframe.document.scrollingElement
-    if (!el) return
-
-    const { scrollLeft, clientWidth } = el
-    // Use a small tolerance for sub-pixel scrolling differences
-    if (Math.abs(scrollLeft % clientWidth) > 1) {
-      el.scrollLeft = Math.round(scrollLeft / clientWidth) * clientWidth
-    }
-  }
-
-  useEventListener(iframe, 'scroll', handleScroll)
-  // Also listen to selectionchange on document to catch selection-induced scrolling
-  useEventListener(iframe?.document, 'selectionchange', handleScroll)
-
   useEventListener(iframe, 'mousedown', onMouseDown)
 
   useEventListener(iframe, 'click', (e) => {
