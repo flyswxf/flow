@@ -162,7 +162,7 @@ const TextSelectionMenuRenderer: React.FC<TextSelectionMenuRendererProps> = ({
           setWidth(el.clientWidth)
           setHeight(el.clientHeight)
           if (!mobile) {
-            el.focus()
+            el.focus({ preventScroll: true })
           }
         }}
         className={clsx(
