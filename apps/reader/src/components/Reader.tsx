@@ -286,6 +286,17 @@ function BookPane({ tab, onMouseDown }: BookPaneProps) {
     setDragEvent(e)
   })
 
+  useEventListener(iframe, 'scroll', () => {
+    if (!iframe || !mobile) return
+    const el = iframe.document.scrollingElement
+    if (!el) return
+
+    const { scrollLeft, clientWidth } = el
+    if (scrollLeft % clientWidth !== 0) {
+      el.scrollLeft = Math.round(scrollLeft / clientWidth) * clientWidth
+    }
+  })
+
   useEventListener(iframe, 'mousedown', onMouseDown)
 
   useEventListener(iframe, 'click', (e) => {
@@ -334,12 +345,6 @@ function BookPane({ tab, onMouseDown }: BookPaneProps) {
       tab.prev()
     } else {
       tab.next()
-    }
-  })
-
-  useEventListener(iframe, 'scroll', () => {
-    if (mobile && iframe && (iframe.scrollX !== 0 || iframe.scrollY !== 0)) {
-      iframe.scrollTo(0, 0)
     }
   })
 
