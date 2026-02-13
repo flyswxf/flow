@@ -337,6 +337,12 @@ function BookPane({ tab, onMouseDown }: BookPaneProps) {
     }
   })
 
+  useEventListener(iframe, 'scroll', () => {
+    if (mobile && iframe && (iframe.scrollX !== 0 || iframe.scrollY !== 0)) {
+      iframe.scrollTo(0, 0)
+    }
+  })
+
   useEventListener(iframe, 'keydown', handleKeyDown(tab))
 
   useEventListener(iframe, 'touchstart', (e) => {
