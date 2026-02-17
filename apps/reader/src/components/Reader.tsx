@@ -286,44 +286,7 @@ function BookPane({ tab, onMouseDown }: BookPaneProps) {
     setDragEvent(e)
   })
 
-  // Lock scroll position during user interaction to prevent selection auto-scroll
-  const lockedScrollPos = useRef<{ left: number; top: number } | null>(null)
-
-  const lockScroll = () => {
-    if (!iframe || !mobile) return
-    const el = iframe.document.scrollingElement
-    if (!el) return
-    lockedScrollPos.current = { left: el.scrollLeft, top: el.scrollTop }
-  }
-
-  const unlockScroll = () => {
-    lockedScrollPos.current = null
-  }
-
-  useEventListener(iframe, 'mousedown', () => {
-    lockScroll()
-    onMouseDown()
-  })
-  useEventListener(iframe, 'touchstart', lockScroll)
-  useEventListener(iframe, 'mouseup', unlockScroll)
-  useEventListener(iframe, 'touchend', unlockScroll)
-
-  const handleScroll = () => {
-    if (!lockedScrollPos.current || !iframe || !mobile) return
-    const el = iframe.document.scrollingElement
-    if (!el) return
-
-    const { left, top } = lockedScrollPos.current
-    if (
-      Math.abs(el.scrollLeft - left) > 1 ||
-      Math.abs(el.scrollTop - top) > 1
-    ) {
-      el.scrollTo(left, top)
-    }
-  }
-
-  useEventListener(iframe, 'scroll', handleScroll)
-  useEventListener(iframe?.document, 'selectionchange', handleScroll)
+  useEventListener(iframe, 'mousedown', onMouseDown)
 
   useEventListener(iframe, 'click', (e) => {
     // https://developer.chrome.com/blog/tap-to-search
